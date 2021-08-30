@@ -1,0 +1,38 @@
+version: '2'
+services:
+  nats:
+    image: 'nats:0.8.0'
+    entrypoint: "/gnatsd -DV"
+    expose:
+      - "4222"
+    ports:
+      - "8222:8222"
+    hostname: nats-server
+  redis:
+    image: "redis"
+    ports:
+      - "6379:6379"
+  chatbackend:
+    build: .
+    links:
+      - nats
+    environment:
+      - "NATS_URI=nats://nats:4222"
+      - "ADDR=:8080"
+    depends_on:
+      - nats
+      - redis
+    ports:
+      - "8080:8080"
+  chatbackend_2:
+    build: .
+    links:
+      - nats
+    environment:
+      - "NATS_URI=nats://nats:4222"
+      - "ADDR=:8081"
+    depends_on:
+      - nats
+      - redis
+    ports:
+      - "8081:8081"

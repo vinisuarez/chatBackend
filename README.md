@@ -39,11 +39,10 @@ curl -X POST \
   -d '{ "username": "vini", "password": "1234"}'
 ```
 
-3) login should return a token what you should user in the web socket argument, e.i:
+3) login should return a token what you should send in the web socket argument, e.i:
 ```
 ws://localhost:8080/ws?bearer=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJFeHBpcmVzQXQiOjE2MzAzNTgzODksIklkIjoiMzA2ODA5ZWItYTMyMi00Yzg0LWE1Y2QtNjMzM2MzNWIwMjZjIiwiTmFtZSI6InZpbmkifQ.EMzM-WVnwgmCG3S2SSt9A2rdwq8PnPDiDSMqTSwLU9c
 ``` 
 
-
-4) any message sent in socket will be considered as chat message, but there is a special command `!online` should send back a list of online users to client
+4) You should get a list of online users when joining and when other users join or leave the server. Also you can get a list at any time by sending `!online`. Any other message sent will be considered a chat message.
 

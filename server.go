@@ -67,7 +67,7 @@ func fecthOnlineUsers(redisClient *redis.Client) map[string]*pb.User {
 }
 
 func (server *Server) Run() {
-	go server.listentMessage()
+	go server.listenMessage()
 	for {
 		select {
 
@@ -75,28 +75,23 @@ func (server *Server) Run() {
 			log.Println("server got client message for register")
 			server.clients[client] = true
 
-			pbUser := &pb.User{
-				Id:   client.id.String(),
-				Name: client.name,
-			}
-			server.publishChangeUser(pbUser, channelAdd)
-
 			msg := &pb.ChatMessage{
 				FromUser: client.name,
 				SentAt:   timestamppb.Now(),
 				Text:     actionJoin,
 			}
 			server.publishChat(msg)
-			usersConnectCounter.Inc()
-
-		case client := <-server.unregister:
-			log.Println("server got client message for unregister")
 
 			pbUser := &pb.User{
 				Id:   client.id.String(),
 				Name: client.name,
 			}
-			server.publishChangeUser(pbUser, channelRemove)
+			server.publishChangeUser(pbUser, channelAdd)
+
+			usersConnectCounter.Inc()
+
+		case client := <-server.unregister:
+			log.Println("server got client message for unregister")
 
 			if _, ok := server.clients[client]; ok {
 				delete(server.clients, client)
@@ -108,6 +103,12 @@ func (server *Server) Run() {
 				Text:     actionLeft,
 			}
 			server.publishChat(msg)
+
+			pbUser := &pb.User{
+				Id:   client.id.String(),
+				Name: client.name,
+			}
+			server.publishChangeUser(pbUser, channelRemove)
 			usersDisconnectCounter.Inc()
 
 		case client := <-server.listOnline:
@@ -143,13 +144,14 @@ func (server *Server) publishChangeUser(pbUser *pb.User, channel string) {
 	server.natsConn.Flush()
 }
 
-func (server *Server) listentMessage() {
+func (server *Server) listenMessage() {
 	server.natsConn.Subscribe(channelAdd, func(msg *nats.Msg) {
 		var pbUser pb.User
 		proto.Unmarshal(msg.Data, &pbUser)
 
 		server.redis.Set(ctx, fmt.Sprintf("%s%s", onlinePrefix, pbUser.Name), msg.Data, 0)
 		server.users[pbUser.Name] = &pbUser
+		server.broadcastMessage(server.buildOnlineUser())
 	})
 
 	server.natsConn.Subscribe(channelRemove, func(msg *nats.Msg) {
@@ -158,6 +160,7 @@ func (server *Server) listentMessage() {
 
 		server.redis.Del(ctx, fmt.Sprintf("%s%s", onlinePrefix, pbUser.Name))
 		delete(server.users, pbUser.Name)
+		server.broadcastMessage(server.buildOnlineUser())
 	})
 
 	server.natsConn.Subscribe(channelUser, func(msg *nats.Msg) {

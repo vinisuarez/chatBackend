@@ -12,7 +12,7 @@ I want to make it different from other project and get out from my comfort zone 
 Redis is used as DB to keep users credentials, map of user and token, and online users.
 
 
-all services can be run using ```docker-compose up --build```
+all services can be run using ```docker-compose up```
 
 that should start nats, redis and 2 instance of the chat server on port 8080 and 8081.
 

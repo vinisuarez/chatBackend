@@ -4,7 +4,6 @@ import (
 	"chatBackend/pb"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gogo/protobuf/jsonpb"
@@ -123,12 +122,15 @@ func (server *Server) Run() {
 }
 
 func (server *Server) buildOnlineUser() []byte {
-	onlineUsers := make([]string, 0, len(server.users))
+	onlineUsers := make([]*pb.User, 0, len(server.users))
 	for _, v := range server.users {
-		onlineUsers = append(onlineUsers, fmt.Sprintf("{\"id\": \"%s\", \"name\": \"%s\"}", v.Id, v.Name))
+		onlineUsers = append(onlineUsers, v)
 	}
-
-	return []byte(fmt.Sprintf("{\"onlineUsers\": [%s]}", strings.Join(onlineUsers[:], ",")))
+	m := jsonpb.Marshaler{}
+	js, _ := m.MarshalToString(&pb.OnlineUsers{
+		OnlineUsers: onlineUsers,
+	})
+	return []byte(js)
 }
 
 func (server *Server) publishChat(msg *pb.ChatMessage) {

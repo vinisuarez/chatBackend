@@ -16,3 +16,7 @@ message ChatMessage {
   google.protobuf.Timestamp sent_at = 2;
   string text = 3;
 }
+
+message OnlineUsers {
+  repeated User OnlineUsers = 1;
+}

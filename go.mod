@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/nats-io/nats.go v1.49.0
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.11.1
 	golang.org/x/crypto v0.49.0
 	google.golang.org/protobuf v1.27.1
 )
